@@ -191,7 +191,7 @@ def DES_encrypt(text):
 
     # mengubah biner ke string.
     #ciphertext = ''.join([chr(int(result[i:i + 8], 2)) for i in range(0, len(result), 8)])
-    #return ciphertext
+    # return ciphertext
 
 def PKCS7_padding(text):
     # melakukan padding teks sesuai dengan PKCS7.
@@ -246,17 +246,43 @@ if choice == 1:
     sub_keys = key_generator(key)
 
     if len(plaintext) % 8 != 0:
-            plaintext = PKCS7_padding(plaintext)
+        plaintext += ' ' * (8 - len(plaintext) % 8)
+    for i in range(0, len(plaintext), 8):
+        list_of_plaintext[i//8] = plaintext[i:i+8]
 
-    ciphertext = DES_encrypt(plaintext)
+    ciphertext = ''
+    for i in range(len(plaintext)//8):
+        tmp = DES_encrypt(list_of_plaintext[i])
+        for j in range(0, len(tmp), 8):
+            ciphertext += chr(int(tmp[j:j+8], 2))
     print("Ciphertext: " + ciphertext)
+    print("Ciphertext hex encoded: " + ciphertext.encode('utf-8').hex())
 
-if choice == 2:
+    # if len(plaintext) % 8 != 0:
+        # plaintext = PKCS7_padding(plaintext)
+
+    # ciphertext = DES_encrypt(plaintext)
+    # print("Ciphertext: " + ciphertext)
+
+elif choice == 2:
     print("Masukan ciphertext: ")
     ciphertext = input()
     print("Masukan key (8 karakter): ")
     key = input()
     sub_keys = key_generator(key)
 
-    decrypted_text = DES_decrypt(ciphertext, sub_keys)
+    if len(ciphertext) % 8 != 0:
+        ciphertext += ' ' * (8 - len(ciphertext) % 8)
+
+    list_of_ciphertext = ['' for x in range(len(ciphertext) // 8)]
+
+    for i in range(0, len(ciphertext), 8):
+        list_of_ciphertext[i // 8] = ciphertext[i:i + 8]
+
+    decrypted_text = ''
+    for chunk in list_of_ciphertext:
+        decrypted_chunk = DES_decrypt(chunk, sub_keys)
+        decrypted_text += decrypted_chunk.rstrip(' ')  # menghapus spasi yang mungkin ditambahkan pada enkripsi
+
+    # decrypted_text = DES_decrypt(ciphertext, sub_keys)
     print("Plaintext yang sudah didekripsi:", decrypted_text)
